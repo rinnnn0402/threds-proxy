@@ -7,19 +7,20 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { url, ...body } = req.body || {};
-  const targetUrl = url || `https://graph.threads.net${req.query.path || ""}`;
-
   try {
-    const response = await fetch(targetUrl, {
-      method: req.method,
+    const { url, method = "GET", body } = req.body;
+    const response = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
-      ...(req.method !== "GET" ? { body: JSON.stringify(body) } : {}),
+      ...(body ? { body } : {}),
     });
-
     const data = await response.json();
-    return res.status(response.status).json(data);
+    return res.status(200).json(data);
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
 }
+
+export const config = {
+  api: { bodyParser: true },
+};
