@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THREADS AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080f;color:#e8e4ff;font-family:'Hiragino Sans','Noto Sans JP',sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:10;background:#08080fee;backdrop-filter:blur(16px);border-bottom:1px solid #1a1a2e;padding:12px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:6px}
+.logo-mark{color:#a78bfa;font-size:18px}
+.logo-text{font-size:13px;letter-spacing:3px;color:#9090b0}
+.logo-text b{color:#e8e4ff}
+nav{display:flex;gap:3px;flex:1;flex-wrap:wrap}
+.nav-btn{background:none;border:1px solid transparent;color:#6b6880;padding:5px 9px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit}
+.nav-btn.active{border-color:#a78bfa44;color:#e8e4ff;background:#a78bfa18}
+.back-btn{background:none;border:1px solid #1e1e35;color:#9090b0;padding:5px 9px;border-radius:6px;cursor:pointer;font-size:11px}
+main{max-width:760px;margin:0 auto;padding:18px 14px}
+.hero{text-align:center;padding:40px 0 28px}
+.hero-eye{font-size:12px;color:#9090b0;margin-bottom:8px;letter-spacing:1px}
+.hero-h{font-size:22px;font-weight:800;line-height:1.5;margin:0 0 10px}
+.hero-acc{color:#a78bfa}
+.hero-sub{font-size:11px;color:#6b6880}
+.card{background:#11111e;border:1px solid #1e1e35;border-radius:12px;padding:18px;margin-bottom:12px}
+.acc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+.acc-card{background:#11111e;border:1px solid #1e1e35;border-radius:12px;padding:16px;cursor:pointer;transition:border-color .15s}
+.acc-card:hover{border-color:#a78bfa44}
+.badge{display:inline-flex;align-items:center;gap:8px;background:#a78bfa18;border:1px solid #a78bfa33;border-radius:99px;padding:4px 12px;margin-bottom:16px;flex-wrap:wrap}
+.page-title{font-size:17px;font-weight:800;color:#e8e4ff;margin:0 0 4px}
+.page-sub{font-size:11px;color:#6b6880;margin:0 0 14px}
+.tab-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.tab{background:none;border:1px solid #1e1e35;color:#6b6880;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit}
+.fg{display:flex;flex-direction:column;gap:14px}
+.fi{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;color:#9090b0;font-weight:600;letter-spacing:.5px}
+.req{background:#ff6fd822;color:#ff6fd8;font-size:9px;padding:1px 5px;border-radius:99px;margin-left:4px}
+input,textarea,select{background:#0a0a16;border:1px solid #1e1e35;border-radius:7px;padding:8px 10px;color:#e8e4ff;font-size:13px;outline:none;font-family:inherit;width:100%}
+textarea{resize:vertical;line-height:1.6}
+select option{background:#11111e;color:#e8e4ff}
+.phase-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.phase-btn{background:none;border:1px solid #1e1e35;color:#6b6880;padding:5px 11px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit}
+.phase-btn.on{border-color:#a78bfa;color:#a78bfa;background:#a78bfa18}
+.type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:6px;margin-top:6px}
+.type-btn{background:none;border:1px solid #1e1e35;color:#9090b0;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit;text-align:left}
+.pill{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600}
+.sec-label{font-size:10px;color:#6b6880;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.row{display:flex;justify-content:space-between;align-items:center}
+.btn-p{background:#a78bfa;border:none;border-radius:8px;padding:10px 18px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:inherit}
+.btn-p:disabled{opacity:.6;cursor:not-allowed}
+.btn-g{background:none;border:1px solid #1e1e35;border-radius:6px;padding:5px 10px;color:#9090b0;cursor:pointer;font-size:12px;font-family:inherit}
+.btn-s{background:none;border:1px solid;border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;font-family:inherit}
+.btn-post{background:#4fffda;border:none;border-radius:8px;padding:10px 18px;color:#08080f;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;width:100%}
+.btn-post:disabled{opacity:.6;cursor:not-allowed}
+.btn-copy{background:#ffb34718;border:1px solid #ffb34744;color:#ffb347;padding:4px 9px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit}
+.btn-copy.done{background:#4fffda18;border-color:#4fffda44;color:#4fffda}
+.btn-d{background:none;border:1px solid #ff446633;border-radius:6px;padding:3px 8px;color:#ff4466;cursor:pointer;font-size:11px;font-family:inherit}
+.btn-sp{background:#a78bfa;border:none;border-radius:6px;padding:5px 11px;color:#fff;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit}
+.upload-zone{border:2px dashed #1e1e35;border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;margin-top:8px}
+.flist{display:flex;flex-direction:column;gap:5px}
+.fitem{display:flex;align-items:center;justify-content:space-between;background:#0a0a16;border:1px solid #1e1e35;border-radius:6px;padding:6px 10px;font-size:12px;color:#9090b0}
+.icon-btn{background:none;border:none;color:#6b6880;cursor:pointer;font-size:11px}
+.pre-text{font-size:13px;color:#c8c0e8;line-height:1.9;white-space:pre-wrap;margin:10px 0 0;font-family:inherit}
+.post-card{background:#11111e;border:1px solid #1e1e35;border-radius:12px;padding:16px;margin-bottom:12px}
+.sched-card{background:#11111e;border:1px solid #1e1e35;border-radius:12px;padding:14px;margin-bottom:8px;display:flex;gap:14px}
+.sched-input{background:#0a0a16;border:1px solid #1e1e35;border-radius:6px;padding:5px 9px;color:#e8e4ff;font-size:12px;font-family:inherit;outline:none;flex:1;max-width:180px}
+.spinner{width:24px;height:24px;border:3px solid #1e1e35;border-top-color:#a78bfa;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+.gen-box{text-align:center;padding:24px 0;color:#9090b0;font-size:12px}
+.res-ok{font-size:12px;color:#4fffda;background:#4fffda18;border:1px solid #4fffda33;border-radius:6px;padding:8px 12px;margin-top:6px}
+.res-err{font-size:12px;color:#ff6b6b;background:#ff6b6b18;border:1px solid #ff6b6b33;border-radius:6px;padding:8px 12px;margin-top:6px}
+.hint{font-size:10px;color:#6b6880;margin:2px 0 6px}
+.empty{text-align:center;padding:36px 0}
+.screen{display:none}
+.screen.active{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="hdr-dash"><header><div class="logo"><span class="logo-mark">&#9672;</span><span class="logo-text">THREADS<b>AI</b></span></div></header></div>
+<div id="hdr-inner" style="display:none"><header><div class="logo"><span class="logo-mark">&#9672;</span><span class="logo-text">THREADS<b>AI</b></span></div><nav id="main-nav"><button class="nav-btn" onclick="go('setup')">&#128203; &#32;&#32;&#32;&#32;&#32;&#32;</button><button class="nav-btn" onclick="go('api')">&#128273; API&#35373;&#23450;</button><button class="nav-btn" onclick="go('profile')">&#9997;&#65039; &#12503;&#12525;&#12501;&#12451;&#12540;&#12523;&#25991;</button><button class="nav-btn" onclick="go('posts')">&#128293; &#25295;&#31295;&#25991;</button><button class="nav-btn" onclick="go('schedule')">&#128197; &#12473;&#12465;&#12472;&#12517;&#12540;&#12523;</button></nav><button class="back-btn" onclick="dash()">&#8592; &#19968;&#35239;</button></header><div style="max-width:760px;margin:0 auto;padding:12px 14px 0"><div class="badge" id="acbadge"></div></div></div>
+<main>
+<div id="screen-dashboard" class="screen active"><div class="hero"><p class="hero-eye">&#12354;&#12394;&#12383;&#12398;&#12499;&#12472;&#12493;&#12473;&#12434;&#26412;&#27668;&#12391;&#20280;&#12400;&#12375;&#12383;&#12356;&#12394;&#12425;&#12289;</p><h1 class="hero-h">&#12300;&#35328;&#12356;&#12383;&#12356;&#12371;&#12392;&#12301;&#12391;&#12399;&#12394;&#12367;<br><span class="hero-acc">&#12300;&#30456;&#25163;&#12364;&#21205;&#12367;&#35328;&#33865;&#12301;</span>&#12434;&#23626;&#12369;&#12429;&#12290;</h1><p class="hero-sub">&#12510;&#12540;&#12465;&#12486;&#12451;&#12531;&#12464;&#35373;&#35336; &#215; &#12450;&#12523;&#12468;&#12522;&#12474;&#12512; &#215; &#12503;&#12525;&#12398;&#25295;&#31295;&#27083;&#36896;&#12391;&#33258;&#21205;&#29983;&#25104;</p></div><div id="dash-content"></div><p style="text-align:center;margin-top:20px;font-size:10px;color:#3a3a5a">&#128190; &#12487;&#12540;&#12479;&#12399;&#12502;&#12521;&#12454;&#12470;&#12395;&#33258;&#21205;&#20445;&#23384;&#12373;&#12428;&#12414;&#12377;</p></div>
+<div id="screen-setup" class="screen"><h2 class="page-title">&#32862;&#12365;&#21462;&#12426;&#12450;&#12531;&#12465;&#12540;&#12488;</h2><p class="page-sub">&#12371;&#12371;&#12398;&#24773;&#22577;&#12398;&#28061;&#12373;&#12364;&#25295;&#31295;&#25991;&#12398;&#31934;&#24230;&#12434;&#20840;&#37096;&#27770;&#12417;&#12414;&#12377;&#12290;&#26412;&#38596;&#12391;&#31572;&#12360;&#12390;&#12367;&#12384;&#12373;&#12356;&#12290;</p><div class="tab-bar" id="sec-tabs"></div><div id="sec-content"></div></div>
+<div id="screen-api" class="screen"><h2 class="page-title">Threads API&#35373;&#23450;</h2><p class="page-sub">&#12488;&#12540;&#12463;&#12531;&#12434;&#36038;&#12426;&#20184;&#12369;&#12427;&#12384;&#12369;&#12391;&#33258;&#21205;&#25295;&#31295;&#12391;&#12365;&#12414;&#12377;&#12290;</p><div id="api-content"></div></div>
+<div id="screen-profile" class="screen"><h2 class="page-title">&#12503;&#12525;&#12501;&#12451;&#12540;&#12523;&#25991;&#29983;&#25104;</h2><p class="page-sub">Hook &#8594; Pain &#8594; Proof &#8594; Promise &#8594; CTA&#12398;&#27083;&#36896;&#12391;&#29983;&#25104;&#12290;&#20309;&#22238;&#12391;&#12418;&#20877;&#29983;&#25104;&#12391;&#12365;&#12414;&#12377;&#12290;</p><div id="profile-content"></div></div>
+<div id="screen-posts" class="screen"><h2 class="page-title">&#25295;&#31295;&#25991;&#29983;&#25104;</h2><div id="posts-content"></div></div>
+<div id="screen-schedule" class="screen"><h2 class="page-title">&#25295;&#31295;&#12473;&#12465;&#12472;&#12517;&#12540;&#12523;</h2><p class="page-sub">&#25295;&#31295;&#25991;&#19968;&#35239;&#12290;&#12473;&#12465;&#12472;&#12517;&#12540;&#12523;&#12539;&#25991;&#31456;&#12399;&#12371;&#12371;&#12391;&#12418;&#20462;&#27491;&#12391;&#12365;&#12414;&#12377;&#12290;</p><div id="sched-content"></div></div>
+</main>
+<script>
+const SK="threads_ai_v3";
+const PROXY="https://threds-proxy.vercel.app/api/proxy";
+let accounts=[],cid=null,curSec=0,curPhase="認知拡大",curType="常識破壊型",curCtx="",gPosts=[],genProfiles=[],netaList=[],imgMap={};
+
+function ld(){try{accounts=JSON.parse(localStorage.getItem(SK)||"[]")}catch{accounts=[]}}
+function sv(){try{localStorage.setItem(SK,JSON.stringify(accounts))}catch{}}
+function ga(){return accounts.find(a=>a.id===cid)}
+function sync(p){accounts=accounts.map(a=>a.id===cid?{...a,...p}:a);sv()}
+
+async function pfetch(url,method,body){
+  const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url,method:method||"GET",...(body?{body:JSON.stringify(body)}:{})})});
+  return r.json();
+}
+async function getUser(token){const d=await pfetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${token}`,"GET");if(d.error)throw new Error(d.error.message);return d}
+async function tPost(token,userId,text){
+  const c=await pfetch(`https://graph.threads.net/v1.0/${userId}/threads`,"POST",{media_type:"TEXT",text,access_token:token});
+  if(c.error)throw new Error(c.error.message);
+  const p=await pfetch(`https://graph.threads.net/v1.0/${userId}/threads_publish`,"POST",{creation_id:c.id,access_token:token});
+  if(p.error)throw new Error(p.error.message);
+  return p;
+}
+
+const SECS=[
+  {id:"s1",label:"01 基本情報",color:"#a78bfa",qs:[
+    {id:"name",label:"名前・アカウント名",type:"text",ph:"例: しおりん",req:true},
+    {id:"handle",label:"ThreadsのID（@〜）",type:"text",ph:"例: @shiori_uchu",req:true},
+    {id:"purpose",label:"このアカウントは何のために存在していますか？",type:"ta",ph:"例: 接客で悩む人に「言葉の使い方」を教えて、コンサルに繋げるため",req:true},
+  ]},
+  {id:"s2",label:"02 届ける相手（最重要）",color:"#ff6fd8",qs:[
+    {id:"t_moment",label:"投稿を必要としている人は今この瞬間どんな状態ですか？",type:"ta",ph:"例: 夜中に「なんで私だけうまくいかないんだろう」とスマホを見てる。",req:true,rows:4},
+    {id:"t_search",label:"その人がThreadsで今週実際に検索しそうなワードは？",type:"ta",ph:"例: 「接客 うまくなりたい」「人間関係 疲れた」「副業 何から始める」",req:true},
+    {id:"t_desire",label:"その人が「本当は」手に入れたいものは何ですか？",type:"ta",ph:"例: お金じゃなくて「誰かに必要とされてる感覚」。",req:true},
+    {id:"t_shame",label:"その人が誰にも言えずに抱えてる恥ずかしさや罪悪感は？",type:"ta",ph:"例: 「こんなこともできないの?」と思われそうで人に聞けない。"},
+    {id:"t_tried",label:"その人がこれまでに試して「うまくいかなかった」方法は？",type:"ta",ph:"例: 本を読んだ・セミナーに行った。でも行動に移せなかった。"},
+    {id:"t_words",label:"その人がよく使う言葉・DMで実際に来た言葉をそのまま",type:"ta",ph:"例:「もう疲れました」「私には無理なんですかね」",req:true},
+  ]},
+  {id:"s3",label:"03 あなた自身",color:"#4fffda",qs:[
+    {id:"who",label:"あなたは何者ですか？（肩書きじゃなく、どんな人生を歩んできたか）",type:"ta",ph:"例: 18歳からナイトワーク。最初の3年は全く稼げなくて毎日泣いてた。",req:true,rows:4},
+    {id:"why",label:"なぜそれをやっていますか？（本音で）",type:"ta",ph:"例: 正直最初はお金のため。でも「あなたのおかげで変われました」って言葉をもらったとき気づいた。",req:true},
+    {id:"only_you",label:"競合と比べて、あなただけが言える言葉・あなたにしかできないことは？",type:"ta",ph:"例: 理論じゃなく現場10年の実体験で話せる。失敗談を全部さらけ出せる。",req:true},
+    {id:"enemy",label:"あなたが「これが問題だ」と思っている業界・社会・常識は？",type:"ta",ph:"例: 「努力すれば必ず報われる」という嘘。綺麗事しか言わないコンサル業界。"},
+  ]},
+  {id:"s4",label:"04 商品・導線",color:"#ffb347",qs:[
+    {id:"product",label:"提供しているもの（複数あれば全部）",type:"ta",ph:"例:\n①無料：プロフのリンクからノウハウ記事\n②¥3,000：オンラインセミナー\n③¥50,000〜：個別コンサル",req:true,rows:4},
+    {id:"transform",label:"サービスを受けた人は「前と後」でどう変わりますか？",type:"ta",ph:"例: コンサル開始3ヶ月で月収が18万→55万。「初めて自分のことが好きになれた」とLINEが来た。",req:true},
+    {id:"cv",label:"お客さん・フォロワーからもらった言葉をそのまま（加工なし）",type:"ta",ph:"例:「あなたの投稿見て初めて泣きました」「3ヶ月で人生変わりました」",req:true},
+    {id:"cta",label:"投稿を見た人に24時間以内にやってほしいことは？",type:"text",ph:"例: プロフのリンクをクリックして無料記事を読む / DMを送る",req:true},
+    {id:"cta_benefit",label:"その行動をとると相手にどんなメリットがありますか？（相手目線で）",type:"ta",ph:"例: 今すぐ無料で「人間関係がラクになる3つの考え方」が読める。",req:true},
+  ]},
+  {id:"s5",label:"05 文脈・キャラクター",color:"#ff6b6b",qs:[
+    {id:"contexts",label:"このアカウントで投稿する「文脈」を全部リストアップ",type:"ta",ph:"例:\n①宇宙人キャラ×接客ノウハウ（認知拡大）\n②本音トーク×人間関係（信頼構築）\n③起業家×お金の話（販売導線）",req:true,rows:5},
+    {id:"tone",label:"口調・文体・絵文字の使い方を具体的に",type:"ta",ph:"例: 関西弁ベース。「〜やねん」「〜やん」を使う。絵文字は🌙と✊だけ。一文を短く。改行多め。",req:true},
+    {id:"never_say",label:"絶対に使わない言葉・やりたくない表現",type:"ta",ph:"例: 「人生変わります」みたいな大げさな煽り。「限定〇名」みたいな焦らせる表現。"},
+    {id:"phase",label:"今のアカウントのフェーズ",type:"sel",opts:["認知拡大（まずフォロワーを増やしたい）","信頼構築（深く知ってもらいたい）","販売・集客（商品・サービスを売りたい）","全部バランスよく"],req:true},
+  ]},
+  {id:"s6",label:"06 競合・市場",color:"#6bdfff",qs:[
+    {id:"diff",label:"同じジャンルの発信者と比べて、あなたの「見せ方」は何が違いますか？",type:"ta",ph:"例: 他の人は成功談しか話さないけど私は失敗談を全部出す。"},
+    {id:"objection",label:"フォローや購入をためらう人が持っている「言い訳・反論・疑い」は？",type:"ta",ph:"例: 「どうせ私には無理」「お金がない」「本当に効果あるの?」",req:true},
+    {id:"proof",label:"数字で言える実績・証拠（小さくてもOK）",type:"ta",ph:"例: フォロワー1.2万人・クライアント累計47名・売上3ヶ月で3倍"},
+  ]},
+  {id:"s7",label:"07 コンテンツ設計",color:"#c8f060",qs:[
+    {id:"best_post",label:"過去に一番反響があった投稿・言葉・エピソード",type:"ta",ph:"例: 「接客は技術じゃなく観察力」と書いたらいいねが500超えた。"},
+    {id:"worst_post",label:"反響がなかった・スベった投稿のパターン",type:"ta",ph:"例: 知識をまとめた投稿は伸びない。長文の自己紹介はスルーされた。"},
+    {id:"taboo",label:"このアカウントでは触れたくないテーマ",type:"ta",ph:"例: 政治・宗教・特定の人への批判"},
+    {id:"freq",label:"理想の投稿頻度",type:"sel",opts:["毎日（1日1投稿）","週5（平日のみ）","週3","週2〜3","週1"],req:true},
+  ]},
+];
+
+const PTYPES=[
+  {label:"常識破壊型",hook:"〇〇は間違いです、から始める",color:"#ff6b6b"},
+  {label:"暴露型",hook:"誰も言わないけど〜から始める",color:"#ffb347"},
+  {label:"before/after型",hook:"数字か状態の変化から始める",color:"#4fffda"},
+  {label:"核心共感型",hook:"相手の心の声をそのまま書く",color:"#ff6fd8"},
+  {label:"共感→解決型",hook:"〇〇で悩んでるなら読んで",color:"#a78bfa"},
+  {label:"問いかけ型",hook:"相手がYESと言える問いから始める",color:"#6bdfff"},
+  {label:"毒舌本質型",hook:"断言から始める",color:"#c8f060"},
+  {label:"笑えるけど刺さる型",hook:"あるある→本質のギャップ",color:"#ffd700"},
+];
+
+const DPOSTS=[
+  {type:"常識破壊型",text:"接客が上手い人は\n「聞き上手」だと思ってませんか。\n\n違います。\n\n本当に売れる人は\n「相手が次に何を言うか」を\n先に決めています。\n\n会話は即興じゃない。\n設計です。\n\nこれを知ってるかどうかで\n同じ1時間の結果が3倍変わります。\n\nもっと詳しく知りたい人は\nプロフのリンクから無料で受け取れます。"},
+  {type:"核心共感型",text:"「私って、何やってもダメなのかな」\n\nそう思ったことありますか。\n\nあります、私も。\n最初の半年、毎日そう思ってました。\n\nでも今わかること。\n\nダメだったんじゃなくて\n「正しいやり方を知らなかっただけ」でした。\n\nあの頃の自分に教えてあげたかったことを\nプロフのリンクから無料で読めます。"},
+  {type:"before/after型",text:"3年前の私\n→ 月収18万・人間関係ボロボロ・自信ゼロ\n\n今の私\n→ 独立・好きな人とだけ仕事・毎日が楽しい\n\n変わったのは能力じゃないです。\n\n「自分の言葉の使い方」を変えただけ。\n\nどう変えたか、具体的に知りたい人は\nプロフのリンクから全部読めます。"},
+  {type:"毒舌本質型",text:"「自分を変えたい」と言いながら\n何も変わらない人の共通点があります。\n\n「正しい情報を集めてから動こうとする」\nことです。\n\n情報は行動した後に意味を持ちます。\n\n動く前に全部わかろうとするから\n永遠に動けない。\n\nこれに気づいた人から\n人生が変わり始めます。"},
+  {type:"暴露型",text:"ナイトワークの業界で\n誰も言わないことを言います。\n\n稼いでいる子の共通点は\n「話が上手い」でも「顔が良い」でもない。\n\n「相手が何を求めているか\n 先に察して、先に与えられる」人です。\n\nこれ、普通の仕事でも人間関係でも\n全く同じ原理が働いてます。\n\n実際にどうやるか\nプロフのリンクから今すぐ確認できます。"},
+];
+
+const DPROFILES=[
+  "── これを読んでるあなたへ ──\n\n「頑張ってるのに結果が出ない」\nそう感じてる人だけ読んでください。\n\nその原因、才能でも努力でもないです。\nただ「やり方」を知らなかっただけ。\n\nナイトワーク10年・独立3年。\n泥臭い現場で積み上げた\n「人が動く言葉の使い方」を全部ここで話します。\n\nフォローすると\n・人間関係がラクになる考え方\n・お金と向き合う本音の話\n・誰も教えてくれなかった現場の真実\n\nが毎日届きます。\n\nプロフのリンクから\n今すぐ無料で受け取れます👇",
+  "あなたは今、何かを変えたいと思ってますか？\n\n「このままじゃダメだ」\n「でも何から始めればいいかわからない」\n\nその感覚、正確です。\n\n私はナイトワーク10年で\n月100万稼ぐ人と全く稼げない人を\n両方間近で見てきました。\n\n違いは「能力」じゃなかった。\n\nフォローすると\nその違いの正体を全部話します。\n\n今すぐプロフのリンクを開くと\n最初の一歩が具体的にわかります👇",
+];
+
+function h(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function ha(s){return String(s||"").replace(/'/g,"&#39;").replace(/\n/g,"\\n")}
+
+function go(sc){
+  autoSave();
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-"+sc).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach((b,i)=>{
+    b.classList.toggle("active",["setup","api","profile","posts","schedule"][i]===sc);
+  });
+  if(sc==="setup")rSetup();
+  else if(sc==="api")rApi();
+  else if(sc==="profile")rProfile();
+  else if(sc==="posts")rPosts();
+  else if(sc==="schedule")rSched();
+}
+
+function dash(){
+  autoSave();cid=null;
+  document.getElementById("hdr-dash").style.display="";
+  document.getElementById("hdr-inner").style.display="none";
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-dashboard").classList.add("active");
+  rDash();
+}
+
+function selAcc(id){
+  cid=id;const a=ga();if(!a)return;
+  gPosts=a.posts||[];genProfiles=a.profiles||[];netaList=a.netaList||[];imgMap={};
+  document.getElementById("hdr-dash").style.display="none";
+  document.getElementById("hdr-inner").style.display="";
+  updBadge();go("setup");
+}
+
+function updBadge(){
+  const a=ga();if(!a)return;
+  const api=!!(a.token&&a.userId);
+  document.getElementById("acbadge").innerHTML=`<span style="font-size:13px;font-weight:700;color:#e8e4ff">${h(a.name)}</span><span style="font-size:11px;color:#9090b0">${h(a.handle)}</span><span class="pill" style="${api?"background:#4fffda18;color:#4fffda":"background:#ffb34718;color:#ffb347"}">${api?"🚀 自動投稿ON":"📋 コピペモード"}</span>`;
+}
+
+function rDash(){
+  const el=document.getElementById("dash-content");
+  if(!accounts.length){el.innerHTML=`<div class="empty"><div style="font-size:36px;margin-bottom:10px;color:#2a2a4a">◎</div><p style="color:#6b6880;margin-bottom:18px;font-size:13px">まだアカウントがありません</p><button class="btn-p" onclick="addAcc()">＋ 最初のアカウントを追加</button></div>`;return}
+  el.innerHTML=`<div class="row" style="margin-bottom:10px"><span class="sec-label">アカウント一覧</span><button class="btn-sp" onclick="addAcc()">＋ 追加</button></div><div class="acc-grid">${accounts.map(a=>`<div class="acc-card" onclick="selAcc('${a.id}')"><div style="font-size:14px;font-weight:700;color:#e8e4ff;margin-bottom:2px">${h(a.name)}</div><div style="font-size:11px;color:#6b6880;margin-bottom:10px">${h(a.handle)}</div><div class="row"><span class="pill" style="${a.token&&a.userId?"background:#4fffda18;color:#4fffda":"background:#ffb34718;color:#ffb347"}">${a.token&&a.userId?"🚀 自動投稿":"📋 コピペ"}</span><button class="btn-d" onclick="event.stopPropagation();delAcc('${a.id}')">削除</button></div></div>`).join("")}</div>`;
+}
+
+function addAcc(){
+  const id=Date.now().toString();
+  accounts.push({id,name:"新規アカウント",handle:"@",form:{},files:[],profiles:[],posts:[],netaList:[],token:"",userId:"",apiUsername:""});
+  sv();selAcc(id);
+}
+function delAcc(id){accounts=accounts.filter(a=>a.id!==id);sv();rDash()}
+
+function rSetup(){
+  const sec=SECS[curSec];const a=ga();const form=a?.form||{};
+  document.getElementById("sec-tabs").innerHTML=SECS.map((s,i)=>`<button class="tab" style="${i===curSec?`border-color:${s.color};color:${s.color};background:${s.color}18`:""}" onclick="swSec(${i})">${s.label}</button>`).join("");
+  let fh="";
+  sec.qs.forEach(q=>{
+    const v=h(form[q.id]||"");
+    if(q.type==="sel"){fh+=`<div class="fi"><label class="fl">${q.label}${q.req?'<span class="req">必須</span>':""}</label><select id="f-${q.id}" onchange="uf('${q.id}',this.value)">${(q.opts||[]).map(o=>`<option value="${h(o)}" ${form[q.id]===o?"selected":""}>${h(o)}</option>`).join("")}</select></div>`}
+    else if(q.type==="ta"){fh+=`<div class="fi"><label class="fl">${q.label}${q.req?'<span class="req">必須</span>':""}</label><textarea id="f-${q.id}" rows="${q.rows||3}" placeholder="${ha(q.ph||"")}" oninput="uf('${q.id}',this.value)">${h(form[q.id]||"")}</textarea></div>`}
+    else{fh+=`<div class="fi"><label class="fl">${q.label}${q.req?'<span class="req">必須</span>':""}</label><input type="text" id="f-${q.id}" value="${v}" placeholder="${ha(q.ph||"")}" oninput="uf('${q.id}',this.value)"></div>`}
+  });
+  const isLast=curSec===SECS.length-1;
+  document.getElementById("sec-content").innerHTML=`<div class="card" style="border-color:${sec.color}33"><div style="font-size:11px;color:${sec.color};font-weight:700;letter-spacing:1px;margin-bottom:16px">${sec.label}</div><div class="fg">${fh}</div>${isLast?`<div style="margin-top:20px;border-top:1px solid #1e1e35;padding-top:16px"><label class="fl">参考ファイルアップロード</label><div class="upload-zone" onclick="document.getElementById('fi').click()"><div style="font-size:22px;margin-bottom:4px">📁</div><div style="font-size:12px;color:#9090b0">クリックしてファイルを選択</div></div><input id="fi" type="file" multiple accept=".txt,.pdf,.csv,.md" style="display:none" onchange="hFiles(this)"><div id="fl-list" class="flist" style="margin-top:8px"></div></div>`:""}<div style="display:flex;justify-content:space-between;margin-top:20px;gap:8px">${curSec>0?`<button class="btn-g" onclick="swSec(${curSec-1})">← 前へ</button>`:"<div></div>"}<button class="btn-p" onclick="${isLast?"autoSave();go('api')":` swSec(${curSec+1})`}">${isLast?"保存してAPI設定へ →":"保存して次へ →"}</button></div></div>`;
+  if(isLast)rFiles();
+}
+
+function swSec(i){autoSave();curSec=i;rSetup()}
+function uf(k,v){const a=ga();if(!a)return;if(!a.form)a.form={};a.form[k]=v;if(k==="name")a.name=v||"無名";if(k==="handle")a.handle=v||"@"}
+function autoSave(){const a=ga();if(!a)return;sync({name:a.name,handle:a.handle,form:a.form});updBadge()}
+function hFiles(inp){const a=ga();if(!a)return;const ns=Array.from(inp.files).map(f=>f.name);a.files=[...(a.files||[]),...ns];sync({files:a.files});rFiles();inp.value=""}
+function rFiles(){const el=document.getElementById("fl-list");if(!el)return;const a=ga();const files=a?.files||[];el.innerHTML=files.map((f,i)=>`<div class="fitem"><span>📄 ${h(f)}</span><button class="icon-btn" onclick="rmFile(${i})">✕</button></div>`).join("")}
+function rmFile(i){const a=ga();a.files=(a.files||[]).filter((_,idx)=>idx!==i);sync({files:a.files});rFiles()}
+
+function rApi(){
+  const a=ga();const api=!!(a?.token&&a?.userId);
+  document.getElementById("api-content").innerHTML=`<div class="card" style="border-color:${api?"#4fffda44":"#1e1e35"}"><div class="row"><span class="sec-label">Threads API設定</span><span class="pill" style="${api?"background:#4fffda18;color:#4fffda":"background:#ffb34718;color:#ffb347"}">${api?"✓ 自動投稿ON":"コピペモード"}</span></div>${api?`<div style="margin-top:10px;background:#4fffda18;border:1px solid #4fffda33;border-radius:8px;padding:10px 14px;font-size:12px"><div style="color:#4fffda;font-weight:700;margin-bottom:2px">接続中のアカウント</div><div style="color:#c8c0e8">@${h(a.apiUsername||"取得済み")} （ID: ${h(a.userId)}）</div></div>`:""}<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px"><div class="fi"><label class="fl">アクセストークンを入力するだけでOK</label><p class="hint">ユーザーIDは自動で取得します</p><div style="position:relative"><input type="password" id="tok-inp" placeholder="Threadsアクセストークンを貼り付け" value="${ha(a?.token||"")}"><button style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b6880;cursor:pointer;font-size:10px" onclick="toggleTok()">表示</button></div></div><div style="display:flex;gap:8px"><button class="btn-p" style="flex:1" id="con-btn" onclick="conApi()">${api?"🔄 再接続する":"🔗 接続する"}</button>${api?`<button class="btn-g" style="border-color:#ff446633;color:#ff4466" onclick="disApi()">解除</button>`:""}</div><div id="api-res"></div></div></div><div class="card" style="margin-top:12px"><div class="sec-label">投稿モードの違い</div><div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap"><div style="flex:1;min-width:200px;background:#4fffda18;border:1px solid #4fffda33;border-radius:8px;padding:14px"><div style="color:#4fffda;font-weight:700;margin-bottom:6px">🚀 自動投稿モード</div><div style="font-size:12px;color:#9090b0;line-height:1.6">APIトークン登録済み。ボタン1つでThreadsに直接投稿されます。</div></div><div style="flex:1;min-width:200px;background:#ffb34718;border:1px solid #ffb34733;border-radius:8px;padding:14px"><div style="color:#ffb347;font-weight:700;margin-bottom:6px">📋 コピペモード</div><div style="font-size:12px;color:#9090b0;line-height:1.6">APIトークン未登録。投稿文をコピーして手動でThreadsに貼り付けて投稿します。</div></div></div></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn-p" onclick="go('profile')">プロフィール文を作る →</button></div>`;
+}
+function toggleTok(){const i=document.getElementById("tok-inp");i.type=i.type==="password"?"text":"password"}
+async function conApi(){
+  const t=document.getElementById("tok-inp").value.trim();
+  if(!t){showAR(false,"アクセストークンを入力してください");return}
+  const b=document.getElementById("con-btn");b.textContent="接続中...";b.disabled=true;
+  try{const d=await getUser(t);sync({token:t,userId:d.id,apiUsername:d.username});updBadge();showAR(true,`✓ 接続成功！ @${d.username}（ID: ${d.id}）`);setTimeout(()=>rApi(),1200)}
+  catch(e){showAR(false,`✗ エラー: ${e.message}`);b.textContent="🔗 接続する";b.disabled=false}
+}
+function disApi(){sync({token:"",userId:"",apiUsername:""});updBadge();rApi()}
+function showAR(ok,msg){const el=document.getElementById("api-res");if(el)el.innerHTML=`<div class="${ok?"res-ok":"res-err"}">${h(msg)}</div>`}
+
+function rProfile(){
+  const a=ga();const profs=a?.profiles||[];
+  document.getElementById("profile-content").innerHTML=`<div class="card" style="margin-bottom:12px"><div class="sec-label">使用するマーケティング構造</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${[["Hook","誰に向けたか一瞬でわかる","#ff6fd8"],["Pain","相手の悩みをど真ん中で言語化","#ffb347"],["Proof","なぜあなたが解決できるか","#4fffda"],["Promise","フォローすると何が手に入るか","#a78bfa"],["CTA","相手メリット先出しで行動促進","#c8f060"]].map(([n,d,c])=>`<div style="background:${c}18;border:1px solid ${c}33;border-radius:8px;padding:8px 12px;font-size:11px"><div style="color:${c};font-weight:700;margin-bottom:2px">${n}</div><div style="color:#9090b0">${d}</div></div>`).join("")}</div></div><div class="card"><button class="btn-p" style="width:100%;margin-bottom:16px" id="gp-btn" onclick="genProf()">${profs.length?"🔄 再生成する":"✨ プロフィール文を生成する"}</button><div id="gp-gen"></div><div id="gp-list">${profs.map((p,i)=>`<div style="border:1px solid #1e1e35;border-radius:10px;padding:14px;margin-bottom:10px"><div class="row"><span class="sec-label">パターン ${i+1}</span><button class="btn-copy" onclick="cpText('${ha(p.text)}',this)">📋 このプロフィールをコピー</button></div><pre class="pre-text">${h(p.text)}</pre></div>`).join("")}</div></div>`;
+}
+function genProf(){
+  document.getElementById("gp-btn").disabled=true;
+  document.getElementById("gp-gen").innerHTML=`<div class="gen-box"><div class="spinner"></div>Hook→Pain→Proof→Promise→CTAの構造で生成中...</div>`;
+  setTimeout(()=>{genProfiles=DPROFILES.map((t,i)=>({id:i,text:t}));sync({profiles:genProfiles});rProfile()},1800);
+}
+
+function rPosts(){
+  const a=ga();const api=!!(a?.token&&a?.userId);
+  document.getElementById("posts-content").innerHTML=`<div class="card"><div class="sec-label">ネタを登録</div><div style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><textarea id="neta-inp" rows="3" placeholder="今日投稿したいネタ・テーマを一言で&#10;例: 接客で緊張しなくなるコツ"></textarea><button class="btn-p" onclick="addNeta()">ネタを追加 ＋</button></div><div id="neta-list" style="margin-top:12px"></div></div><div class="card"><div class="sec-label">投稿設定</div><div style="margin-top:12px"><label class="fl">今日の目的・フェーズ</label><div class="phase-grid">${["認知拡大","信頼構築","行動喚起","拡散狙い"].map(p=>`<button class="phase-btn ${curPhase===p?"on":""}" onclick="setPhase('${p}')">${p}</button>`).join("")}</div></div><div style="margin-top:14px"><label class="fl">投稿の型</label><div class="type-grid">${PTYPES.map(t=>`<button class="type-btn" style="${curType===t.label?`border-color:${t.color};color:${t.color};background:${t.color}18`:""}" onclick="setType('${t.label}')"><div style="font-weight:700;margin-bottom:2px">${t.label}</div><div style="font-size:9px;color:#6b6880;line-height:1.3">${t.hook}</div></button>`).join("")}</div></div><div style="margin-top:14px" class="fi"><label class="fl">今日使う文脈</label><input type="text" id="ctx-inp" value="${ha(curCtx)}" placeholder="例: 宇宙人キャラ×接客ノウハウ" oninput="curCtx=this.value"></div><button class="btn-p" style="width:100%;margin-top:16px" id="gpost-btn" onclick="runGenPosts()">🔥 投稿文を生成する（ハッシュタグなし）</button></div><div id="posts-gen"></div><div id="posts-list"></div>`;
+  rNetaList();rPostsList();
+}
+function setPhase(p){curPhase=p;rPosts()}
+function setType(t){curType=t;rPosts()}
+function addNeta(){const v=document.getElementById("neta-inp").value.trim();if(!v)return;netaList.push({id:Date.now(),text:v,date:new Date().toLocaleDateString("ja-JP")});sync({netaList});document.getElementById("neta-inp").value="";rNetaList()}
+function delNeta(id){netaList=netaList.filter(n=>n.id!==id);sync({netaList});rNetaList()}
+function rNetaList(){const el=document.getElementById("neta-list");if(!el)return;el.innerHTML=netaList.map(n=>`<div class="fitem"><span style="flex:1;font-size:13px;color:#c8c0e8">${h(n.text)}</span><span style="font-size:10px;color:#6b6880;margin-right:6px">${n.date}</span><button class="icon-btn" onclick="delNeta(${n.id})">✕</button></div>`).join("")}
+function runGenPosts(){
+  document.getElementById("gpost-btn").disabled=true;
+  document.getElementById("posts-gen").innerHTML=`<div class="gen-box"><div class="spinner"></div>最新アルゴリズム・マーケティング構造を反映して生成中...</div>`;
+  setTimeout(()=>{
+    const times=["07:00","12:00","19:00","21:00","08:00"];
+    gPosts=DPOSTS.map((p,i)=>{const d=new Date();d.setDate(d.getDate()+i+1);const dt=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${times[i%times.length]}`;return{id:Date.now()+i,text:p.text,type:p.type,phase:curPhase,schedule:dt,approved:false}});
+    sync({posts:gPosts});document.getElementById("posts-gen").innerHTML="";rPostsList();
+  },2200);
+}
+function rPostsList(){
+  const el=document.getElementById("posts-list");if(!el)return;
+  const a=ga();const api=!!(a?.token&&a?.userId);
+  el.innerHTML=gPosts.map((post,i)=>{
+    const ti=PTYPES.find(t=>t.label===post.type)||{};
+    return `<div class="post-card" style="${post.approved?"border-color:#4fffda44":""}"><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:10px"><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="pill" style="background:${(ti.color||"#a78bfa")}18;color:${ti.color||"#a78bfa"}">${post.type}</span><span class="pill" style="background:#4fffda18;color:#4fffda">${post.phase}</span>${post.approved?'<span class="pill" style="background:#a78bfa18;color:#a78bfa">✓ 確認済</span>':""}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn-s" style="border-color:#4fffda;color:#4fffda" onclick="togEdit(${i})">✏️ 修正</button><button class="btn-s" style="${post.approved?"background:#a78bfa18;border-color:#a78bfa;color:#a78bfa":"border-color:#6b6880;color:#6b6880"}" onclick="togAppr(${i})">${post.approved?"✓ 確認済":"確認する"}</button></div></div>${ti.hook?`<div style="font-size:10px;color:#6b6880;background:#0a0a16;border-radius:6px;padding:4px 10px;margin-bottom:10px">💡 冒頭の鉄則: ${ti.hook}</div>`:""}<div id="pd-${i}"><pre class="pre-text">${h(post.text)}</pre></div><div id="pe-${i}" style="display:none"><textarea rows="8" style="min-height:160px" oninput="gPosts[${i}]._e=this.value">${h(post.text)}</textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn-p" onclick="saveEd(${i})">保存</button><button class="btn-g" onclick="togEdit(${i})">キャンセル</button></div></div><div style="border-top:1px solid #1e1e35;padding-top:10px;margin-top:8px"><div class="row"><label class="fl">画像添付（最大10枚）</label><button class="btn-g" onclick="document.getElementById('ii-${i}').click()">＋ 画像を追加</button></div><input id="ii-${i}" type="file" multiple accept="image/*" style="display:none" onchange="addImg(${i},this)"><div id="il-${i}" style="margin-top:8px"></div></div><div class="row" style="margin-top:10px;border-top:1px solid #1e1e35;padding-top:10px"><label class="fl">📅 投稿予定日時</label><input class="sched-input" type="text" value="${ha(post.schedule)}" placeholder="YYYY/MM/DD hh:mm" onchange="updSched(${i},this.value)"></div><div style="margin-top:12px;border-top:1px solid #1e1e35;padding-top:12px">${api?`<button class="btn-post" id="pb-${i}" onclick="doPost(${i})">🚀 Threadsに投稿する</button>`:`<button class="btn-copy" onclick="cpText('${ha(post.text)}',this)">📋 コピーして手動投稿</button><p style="font-size:10px;color:#6b6880;margin-top:4px">API設定タブでトークンを登録すると自動投稿できます</p>`}<div id="pr-${i}"></div></div></div>`;
+  }).join("");
+}
+function togEdit(i){const d=document.getElementById(`pd-${i}`);const e=document.getElementById(`pe-${i}`);const show=e.style.display==="block";d.style.display=show?"block":"none";e.style.display=show?"none":"block"}
+function saveEd(i){if(gPosts[i]._e!==undefined){gPosts[i].text=gPosts[i]._e;delete gPosts[i]._e}sync({posts:gPosts});togEdit(i);rPostsList()}
+function togAppr(i){gPosts[i].approved=!gPosts[i].approved;sync({posts:gPosts});rPostsList()}
+function updSched(i,v){gPosts[i].schedule=v;sync({posts:gPosts})}
+function addImg(i,inp){if(!imgMap[i])imgMap[i]=[];imgMap[i]=[...imgMap[i],...Array.from(inp.files)].slice(0,10);rImgList(i);inp.value=""}
+function rImgList(i){const el=document.getElementById(`il-${i}`);if(!el)return;el.innerHTML=(imgMap[i]||[]).map((f,j)=>`<div class="fitem"><span>🖼 ${h(f.name)}</span><button class="icon-btn" onclick="rmImg(${i},${j})">✕</button></div>`).join("")}
+function rmImg(i,j){imgMap[i]=(imgMap[i]||[]).filter((_,idx)=>idx!==j);rImgList(i)}
+async function doPost(i){
+  const a=ga();const b=document.getElementById(`pb-${i}`);const r=document.getElementById(`pr-${i}`);
+  b.disabled=true;b.textContent="投稿中...";
+  try{await tPost(a.token,a.userId,gPosts[i].text);r.innerHTML='<div class="res-ok">✓ Threadsに投稿しました！</div>'}
+  catch(e){r.innerHTML=`<div class="res-err">✗ エラー: ${h(e.message)}</div>`}
+  b.disabled=false;b.textContent="🚀 Threadsに投稿する";
+}
+
+function rSched(){
+  const a=ga();const api=!!(a?.token&&a?.userId);const el=document.getElementById("sched-content");
+  if(!gPosts.length){el.innerHTML='<div class="card"><p style="color:#6b6880;text-align:center;font-size:13px">まだ投稿文がありません。「投稿文生成」から作成してください。</p></div>';return}
+  el.innerHTML=gPosts.map((post,i)=>{
+    const ti=PTYPES.find(t=>t.label===post.type)||{};
+    return `<div class="sched-card" style="${post.approved?"border-color:#4fffda33":""}"><div style="min-width:110px"><div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px">${h(post.schedule)}</div><span class="pill" style="background:${(ti.color||"#a78bfa")}18;color:${ti.color||"#a78bfa"}">${post.type}</span>${post.approved?'<div style="font-size:10px;color:#4fffda;margin-top:4px">✓ 確認済</div>':""}</div><div style="flex:1"><pre style="font-size:12px;color:#c8c0e8;white-space:pre-wrap;margin:0 0 8px;font-family:inherit">${h(post.text.slice(0,80))}...</pre><div style="display:flex;gap:6px;flex-wrap:wrap">${api?`<button class="btn-post" style="width:auto;padding:4px 12px;font-size:11px" id="spb-${i}" onclick="schedPost(${i})">🚀 投稿する</button>`:`<button class="btn-copy" onclick="cpText('${ha(post.text)}',this)">📋 コピー</button>`}<button class="btn-g" onclick="go('posts')">編集</button></div><div id="spr-${i}"></div></div></div>`;
+  }).join("");
+}
+async function schedPost(i){
+  const a=ga();const b=document.getElementById(`spb-${i}`);const r=document.getElementById(`spr-${i}`);
+  b.disabled=true;b.textContent="投稿中...";
+  try{await tPost(a.token,a.userId,gPosts[i].text);r.innerHTML='<div class="res-ok" style="margin-top:6px">✓ 投稿しました！</div>'}
+  catch(e){r.innerHTML=`<div class="res-err" style="margin-top:6px">✗ ${h(e.message)}</div>`}
+  b.disabled=false;b.textContent="🚀 投稿する";
+}
+
+function cpText(text,btn){
+  navigator.clipboard.writeText(text).then(()=>{if(btn){const o=btn.textContent;btn.textContent="✓ コピーしました";btn.classList.add("done");setTimeout(()=>{btn.textContent=o;btn.classList.remove("done")},2000)}});
+}
+
+ld();rDash();
+</script>
+</body>
+</html>
