@@ -7,8 +7,14 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  if (req.method !== "POST") {
+    return res.status(200).json({ status: "proxy ok" });
+  }
+
   try {
     const { url, method = "GET", body } = req.body;
+    if (!url) return res.status(400).json({ error: "url is required" });
+    
     const response = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
